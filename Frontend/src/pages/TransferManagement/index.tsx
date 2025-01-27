@@ -285,115 +285,113 @@ const TransferManagement: React.FC = () => {
 
   return (
     <>
+      <Card style={{ marginBottom: "10px" }}>
+        <Form
+          name="searchTransferForm"
+          onFinish={handleSubmitSearchTransferForm}
+        >
+          <Flex justify="start" gap="small">
+            <Form.Item name="pattern" label="关键字">
+              <Input style={{ width: 200 }} />
+            </Form.Item>
+            <Form.Item name="transferUserId" label="操作用户">
+              <Select
+                allowClear
+                style={{ width: 125 }}
+                loading={userListLoading}
+              >
+                {userList?.map((item: User) => (
+                  <Select.Option key={item.id} value={item.id}>
+                    {item.displayName}
+                  </Select.Option>
+                ))}
+              </Select>
+            </Form.Item>
+            <Form.Item name="transferTypeId" label="收支类别">
+              <Select
+                allowClear
+                style={{ width: 125 }}
+                loading={transferTypeListLoading}
+              >
+                {transferTypeList?.map((item: TransferType) => (
+                  <Select.Option key={item.id} value={item.id}>
+                    {item.name}
+                  </Select.Option>
+                ))}
+              </Select>
+            </Form.Item>
+            <Form.Item name="createdAtRange" label="收支时间">
+              <DatePicker.RangePicker />
+            </Form.Item>
+          </Flex>
+          <Flex justify="start" gap="small">
+            <Form.Item name="incomeAccountId" label="入账账户">
+              <Select
+                allowClear
+                style={{ width: 125 }}
+                loading={accountListLoading}
+              >
+                {accountList?.map((item: Account) => (
+                  <Select.Option key={item.id} value={item.id}>
+                    {item.accountName}
+                  </Select.Option>
+                ))}
+              </Select>
+            </Form.Item>
+            <Form.Item name="expenseAccountId" label="出账账户">
+              <Select
+                allowClear
+                style={{ width: 125 }}
+                loading={accountListLoading}
+              >
+                {accountList?.map((item: Account) => (
+                  <Select.Option key={item.id} value={item.id}>
+                    {item.accountName}
+                  </Select.Option>
+                ))}
+              </Select>
+            </Form.Item>
+            <Form.Item name="incomeUserId" label="入账账户归属">
+              <Select
+                allowClear
+                style={{ width: 125 }}
+                loading={userListLoading}
+              >
+                {userList?.map((item: User) => (
+                  <Select.Option key={item.id} value={item.id}>
+                    {item.displayName}
+                  </Select.Option>
+                ))}
+              </Select>
+            </Form.Item>
+            <Form.Item name="expenseUserId" label="出账账户归属">
+              <Select
+                allowClear
+                style={{ width: 125 }}
+                loading={userListLoading}
+              >
+                {userList?.map((item: User) => (
+                  <Select.Option key={item.id} value={item.id}>
+                    {item.displayName}
+                  </Select.Option>
+                ))}
+              </Select>
+            </Form.Item>
+            <Form.Item>
+              <Space size="small">
+                <Button type="default" htmlType="reset">
+                  重置
+                </Button>
+                <Button type="primary" htmlType="submit">
+                  搜索
+                </Button>
+              </Space>
+            </Form.Item>
+          </Flex>
+        </Form>
+      </Card>
       <Card>
         <Row gutter={[8, 8]}>
-          <Col span={24}>
-            <Form
-              name="searchTransferForm"
-              onFinish={handleSubmitSearchTransferForm}
-            >
-              <Flex justify="start" gap="middle">
-                <Form.Item name="pattern" label="关键字">
-                  <Input style={{ width: 200 }} />
-                </Form.Item>
-                <Form.Item name="transferUserId" label="操作用户">
-                  <Select
-                    allowClear
-                    style={{ width: 125 }}
-                    loading={userListLoading}
-                  >
-                    {userList?.map((item: User) => (
-                      <Select.Option key={item.id} value={item.id}>
-                        {item.displayName}
-                      </Select.Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-                <Form.Item name="transferTypeId" label="收支类别">
-                  <Select
-                    allowClear
-                    style={{ width: 125 }}
-                    loading={transferTypeListLoading}
-                  >
-                    {transferTypeList?.map((item: TransferType) => (
-                      <Select.Option key={item.id} value={item.id}>
-                        {item.name}
-                      </Select.Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-                <Form.Item name="createdAtRange" label="收支时间">
-                  <DatePicker.RangePicker />
-                </Form.Item>
-              </Flex>
-              <Flex justify="start" gap="middle">
-                <Form.Item name="incomeAccountId" label="入账账户">
-                  <Select
-                    allowClear
-                    style={{ width: 125 }}
-                    loading={accountListLoading}
-                  >
-                    {accountList?.map((item: Account) => (
-                      <Select.Option key={item.id} value={item.id}>
-                        {item.accountName}
-                      </Select.Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-                <Form.Item name="expenseAccountId" label="出账账户">
-                  <Select
-                    allowClear
-                    style={{ width: 125 }}
-                    loading={accountListLoading}
-                  >
-                    {accountList?.map((item: Account) => (
-                      <Select.Option key={item.id} value={item.id}>
-                        {item.accountName}
-                      </Select.Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-                <Form.Item name="incomeUserId" label="入账账户归属用户">
-                  <Select
-                    allowClear
-                    style={{ width: 125 }}
-                    loading={userListLoading}
-                  >
-                    {userList?.map((item: User) => (
-                      <Select.Option key={item.id} value={item.id}>
-                        {item.displayName}
-                      </Select.Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-                <Form.Item name="expenseUserId" label="出账账户归属用户">
-                  <Select
-                    allowClear
-                    style={{ width: 125 }}
-                    loading={userListLoading}
-                  >
-                    {userList?.map((item: User) => (
-                      <Select.Option key={item.id} value={item.id}>
-                        {item.displayName}
-                      </Select.Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              </Flex>
-              <Flex justify="start" gap="middle">
-                <Form.Item>
-                  <Space size="small">
-                    <Button type="default" htmlType="reset">
-                      重置
-                    </Button>
-                    <Button type="primary" htmlType="submit">
-                      搜索
-                    </Button>
-                  </Space>
-                </Form.Item>
-              </Flex>
-            </Form>
-          </Col>
           <Col span={24}>
             <Flex justify="end" gap="small">
               <Button type="primary" onClick={handleAddTransferTypeFormOpen}>
