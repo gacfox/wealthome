@@ -2,8 +2,13 @@ import React from "react";
 import { PageContainer, ProLayout } from "@ant-design/pro-layout";
 import { Link, Outlet, useLocation } from "umi";
 import menus from "@/layouts/menus";
-import { LogoutOutlined } from "@ant-design/icons";
-import { ConfigProvider, Dropdown } from "antd";
+import {
+  GithubFilled,
+  LogoutOutlined,
+  MoonOutlined,
+  SunOutlined,
+} from "@ant-design/icons";
+import { ConfigProvider, Dropdown, theme } from "antd";
 import { useRequest } from "ahooks";
 import { fetchLoginInfo } from "@/services/auth";
 import { doLogout } from "@/services/auth";
@@ -11,13 +16,21 @@ import { doLogout } from "@/services/auth";
 const AdminLayout: React.FC = () => {
   const location = useLocation();
   const { data } = useRequest(fetchLoginInfo);
+  const [currentTheme, setCurrentTheme] = React.useState("default");
   const handleLogout = async () => {
     localStorage.removeItem("loginInfo");
     await doLogout();
     window.location.href = `${process.env.contextPath}/login`;
   };
   return (
-    <ConfigProvider>
+    <ConfigProvider
+      theme={{
+        algorithm:
+          currentTheme === "default"
+            ? theme.defaultAlgorithm
+            : theme.darkAlgorithm,
+      }}
+    >
       <ProLayout
         title="Wealthome 家庭账本"
         layout="mix"
@@ -48,6 +61,18 @@ const AdminLayout: React.FC = () => {
               </Dropdown>
             );
           },
+        }}
+        actionsRender={(props) => {
+          return [
+            currentTheme === "default" ? (
+              <MoonOutlined onClick={() => setCurrentTheme("dark")} />
+            ) : (
+              <SunOutlined onClick={() => setCurrentTheme("default")} />
+            ),
+            <GithubFilled
+              onClick={() => window.open("https://github.com/gacfox/wealthome")}
+            />,
+          ];
         }}
         breadcrumbRender={(routers = []) => [
           {
