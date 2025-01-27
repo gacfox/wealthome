@@ -30,5 +30,5 @@ cd Frontend && npm install && npm run build:production
 ```
 
 ```bash
-dotnet publish -c Release --self-contained false --runtime linux-x64 -o bin/release/net6.0/publish
+dotnet publish -c Release --self-contained true --runtime linux-x64 -o bin/release/net6.0/publish
 ```
