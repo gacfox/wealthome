@@ -16,7 +16,7 @@ const UserExpenseSumStatChart: React.FC<{
     if (chartInstanceRef.current) {
       chartInstanceRef.current.setOption({
         title: {
-          text: "家庭成员收入统计图",
+          text: "家庭成员支出统计图",
         },
         tooltip: {
           trigger: "item",
