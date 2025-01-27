@@ -474,18 +474,6 @@ const TransferManagement: React.FC = () => {
             </Select>
           </Form.Item>
           <Form.Item
-            name="description"
-            label="描述"
-            rules={[
-              {
-                max: 255,
-                message: "描述不能超过50个字符",
-              },
-            ]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
             name="fromAccountId"
             label="来源账户"
             rules={[{ required: true, message: "请选择来源账户" }]}
@@ -534,6 +522,18 @@ const TransferManagement: React.FC = () => {
             initialValue={dayjs()}
           >
             <DatePicker showTime />
+          </Form.Item>
+          <Form.Item
+            name="description"
+            label="描述"
+            rules={[
+              {
+                max: 255,
+                message: "描述不能超过50个字符",
+              },
+            ]}
+          >
+            <Input.TextArea rows={2} />
           </Form.Item>
         </Form>
       </Modal>

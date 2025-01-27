@@ -20,18 +20,15 @@ const UserIncomeSumStatChart: React.FC<{
         },
         tooltip: {
           trigger: "item",
-          formatter: (params: any) => {
-            return `${params.name} ${parseFloat(params.value).toFixed(2)}`;
-          },
         },
         legend: {
           orient: "vertical",
           left: "left",
-          top: "15%"
+          top: "15%",
         },
         series: [
           {
-            name: "Access From",
+            name: "收入",
             type: "pie",
             radius: ["40%", "70%"],
             avoidLabelOverlap: false,

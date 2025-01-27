@@ -39,8 +39,10 @@ const AccountManagement: React.FC = () => {
     },
     {
       title: "余额",
-      dataIndex: "balanceStr",
       key: "balanceStr",
+      render: (_, record) => {
+        return <>{record.accountType === 1 ? record.balanceStr : "-"}</>;
+      },
     },
     {
       title: "归属用户",

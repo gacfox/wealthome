@@ -229,12 +229,12 @@ const Dashboard: React.FC = () => {
                 <Card>
                   <Row gutter={[8, 8]}>
                     <Col span={12}>
-                      <MonthStatChart monthStatList={monthStatList} />
-                    </Col>
-                    <Col span={12}>
                       <UserMonthStatChart
                         userMonthStatList={userMonthStatList}
                       />
+                    </Col>
+                    <Col span={12}>
+                      <MonthStatChart monthStatList={monthStatList} />
                     </Col>
                   </Row>
                 </Card>

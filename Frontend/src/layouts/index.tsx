@@ -16,12 +16,30 @@ import { doLogout } from "@/services/auth";
 const AdminLayout: React.FC = () => {
   const location = useLocation();
   const { data } = useRequest(fetchLoginInfo);
-  const [currentTheme, setCurrentTheme] = React.useState("default");
   const handleLogout = async () => {
     localStorage.removeItem("loginInfo");
     await doLogout();
     window.location.href = `${process.env.contextPath}/login`;
   };
+
+  // 黑白主题处理
+  let initialTheme =
+    window.matchMedia &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "default";
+  const overrideTheme = localStorage.getItem("theme");
+  initialTheme = overrideTheme ? overrideTheme : initialTheme;
+  const [currentTheme, setCurrentTheme] = React.useState(initialTheme);
+  const setDarkTheme = () => {
+    localStorage.setItem("theme", "dark");
+    setCurrentTheme("dark");
+  };
+  const setLightTheme = () => {
+    localStorage.setItem("theme", "default");
+    setCurrentTheme("default");
+  };
+
   return (
     <ConfigProvider
       theme={{
@@ -65,9 +83,9 @@ const AdminLayout: React.FC = () => {
         actionsRender={(props) => {
           return [
             currentTheme === "default" ? (
-              <MoonOutlined onClick={() => setCurrentTheme("dark")} />
+              <MoonOutlined onClick={setDarkTheme} />
             ) : (
-              <SunOutlined onClick={() => setCurrentTheme("default")} />
+              <SunOutlined onClick={setLightTheme} />
             ),
             <GithubFilled
               onClick={() => window.open("https://github.com/gacfox/wealthome")}

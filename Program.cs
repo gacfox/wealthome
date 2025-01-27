@@ -89,7 +89,7 @@ app.UseExceptionHandler(applicationBuilder =>
             if (exception is BusinessException)
             {
                 context.Response.StatusCode = 200;
-                var apiResult = ApiResult<object>.Failure("401", exception.Message);
+                var apiResult = ApiResult<object>.Failure("406", exception.Message);
                 await context.Response.WriteAsJsonAsync(apiResult);
             }
             else

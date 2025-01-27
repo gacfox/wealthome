@@ -20,9 +20,6 @@ const UserExpenseSumStatChart: React.FC<{
         },
         tooltip: {
           trigger: "item",
-          formatter: (params: any) => {
-            return `${params.name} ${parseFloat(params.value).toFixed(2)}`;
-          },
         },
         legend: {
           orient: "vertical",
@@ -31,7 +28,7 @@ const UserExpenseSumStatChart: React.FC<{
         },
         series: [
           {
-            name: "Access From",
+            name: "支出",
             type: "pie",
             radius: ["40%", "70%"],
             avoidLabelOverlap: false,
