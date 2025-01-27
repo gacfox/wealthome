@@ -1,0 +1,28 @@
+{
+  "private": true,
+  "author": "gacfox <gacfox2021@gmail.com>",
+  "scripts": {
+    "dev": "cross-env UMI_ENV=development umi dev",
+    "build": "npm run build:production",
+    "build:development": "cross-env UMI_ENV=development umi build",
+    "build:production": "cross-env UMI_ENV=production umi build",
+    "postinstall": "cross-env UMI_ENV=development umi setup",
+    "setup": "cross-env UMI_ENV=development umi setup",
+    "start": "npm run dev"
+  },
+  "dependencies": {
+    "@ant-design/icons": "^5.6.0",
+    "@ant-design/pro-components": "^2.8.4",
+    "ahooks": "^3.8.4",
+    "antd": "^5.23.2",
+    "decimal.js": "^10.5.0",
+    "echarts": "^5.6.0",
+    "umi": "^4.4.4"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.33",
+    "@types/react-dom": "^18.0.11",
+    "cross-env": "^7.0.3",
+    "typescript": "^5.0.3"
+  }
+}
