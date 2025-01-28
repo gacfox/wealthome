@@ -21,6 +21,12 @@ export const doLogin = async (params: LoginForm) => {
   return await response.json();
 };
 
+export const hasAdminUserInitialized = async () => {
+  return await request("/api/Login/HasAdminUserInitialized", {
+    method: "GET",
+  });
+};
+
 export const initAdminUser = async (params: InitAdminUserForm) => {
   const response = await fetch("/api/Login/InitAdminUser", {
     method: "POST",
