@@ -19,7 +19,7 @@
 <img src="doc/2.webp" style="flex: 1; max-width: 50%; height: auto;">
 </div>
 
-## 构建项目
+## 构建和运行项目
 
 **环境要求**：构建项目需要安装.NET SDK 6、NodeJS 18。
 
@@ -31,4 +31,18 @@ cd Frontend && npm install && npm run build:production
 
 ```bash
 dotnet publish -c Release --self-contained true --runtime linux-x64 -o bin/release/net6.0/publish
+```
+
+在数据目录中，执行以下命令生成SQLite3数据库文件。
+
+```bash
+sqlite3 wealthome.db < doc/schema.sql
+```
+
+## 使用Docker部署
+
+使用Docker部署可以参考如下命令。
+
+```bash
+docker run --name wealthome -p 5000:5000 -d ghcr.io/gacfox/wealthome:latest
 ```
