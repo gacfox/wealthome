@@ -51,6 +51,7 @@ const AdminLayout: React.FC = () => {
     >
       <ProLayout
         title="Wealthome 家庭账本"
+        logo="/logo.png"
         layout="mix"
         route={menus}
         location={location}
