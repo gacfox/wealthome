@@ -215,8 +215,13 @@ const UserManagement: React.FC = () => {
   // 修改头像
   const handleUploadStatusChange = async (info: any) => {
     if (info.file.status === "done") {
-      message.success(`上传成功`);
-      await reloadUserList(false);
+      const response = info.file.response;
+      if (response?.code === "0") {
+        message.success(`上传成功`);
+        await reloadUserList(false);
+      } else {
+        message.error(response?.message ? response.message : "上传失败");
+      }
     }
   };
 
