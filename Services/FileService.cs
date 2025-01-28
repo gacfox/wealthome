@@ -14,7 +14,7 @@ public class FileService
         _configuration = configuration;
     }
 
-    public string SaveFile(IFormFile file)
+    public string SaveAvatar(IFormFile file)
     {
         // 检查扩展名
         string extension = Path.GetExtension(file.FileName).ToLower();

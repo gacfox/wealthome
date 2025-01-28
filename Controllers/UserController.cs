@@ -64,8 +64,8 @@ public class UserController : ControllerBase
             if (User.Identity?.Name != existUser.UserName) return ApiResult<object>.Failure("403", "无权限");
         }
 
-        string fileName = _fileService.SaveFile(userAvatarReq.File);
-        _userService.UpdateUserAvatar(id, $"/api/File/DownloadFile?fileName={fileName}");
+        string fileName = _fileService.SaveAvatar(userAvatarReq.File);
+        _userService.UpdateUserAvatar(id, $"/api/File/DownloadFile/{fileName}");
         return ApiResult<object>.Success();
     }
 

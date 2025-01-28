@@ -24,8 +24,8 @@ public class FileController : ControllerBase
         _configuration = configuration;
     }
 
-    [HttpGet("[action]")]
-    public ActionResult DownloadFile([FromQuery] string fileName)
+    [HttpGet("[action]/{fileName}")]
+    public ActionResult DownloadFile([FromRoute] string fileName)
     {
         string avatarSaveDir = _configuration.GetValue<string>("App:AvatarSaveDir");
         string filePath = Path.Combine(avatarSaveDir, fileName);
