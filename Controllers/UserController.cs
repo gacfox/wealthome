@@ -64,7 +64,21 @@ public class UserController : ControllerBase
             if (User.Identity?.Name != existUser.UserName) return ApiResult<object>.Failure("403", "无权限");
         }
 
+        string prevAvatarUrl = existUser.AvatarUrl ?? string.Empty;
         string fileName = _fileService.SaveAvatar(userAvatarReq.File);
+        if (!string.IsNullOrEmpty(prevAvatarUrl))
+        {
+            try
+            {
+                string prevFileName = prevAvatarUrl[(prevAvatarUrl.LastIndexOf("/", StringComparison.Ordinal) + 1)..];
+                _fileService.DeleteAvatar(prevFileName);
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
+
         _userService.UpdateUserAvatar(id, $"/api/File/DownloadFile/{fileName}");
         return ApiResult<object>.Success();
     }

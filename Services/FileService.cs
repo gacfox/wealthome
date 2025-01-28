@@ -43,4 +43,16 @@ public class FileService
 
         return fileName;
     }
+
+    public void DeleteAvatar(String fileName)
+    {
+        string avatarSaveDir = _configuration.GetValue<string>("App:AvatarSaveDir");
+        if (!Directory.Exists(avatarSaveDir)) Directory.CreateDirectory(avatarSaveDir);
+        string filePath = Path.Combine(avatarSaveDir, fileName);
+        string fullFilePath = Path.GetFullPath(filePath);
+        if (fullFilePath.StartsWith(avatarSaveDir, StringComparison.OrdinalIgnoreCase) && File.Exists(fullFilePath))
+        {
+            File.Delete(filePath);
+        }
+    }
 }
