@@ -2,7 +2,7 @@ FROM ubuntu:22.04
 
 WORKDIR /app
 
-COPY ./bin/Release/net6.0/publish/ /app/
+COPY ./bin/Release/net8.0/publish/ /app/
 COPY ./doc/schema.sql /app/schema.sql
 
 RUN mkdir -p /data/avatar && \

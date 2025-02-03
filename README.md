@@ -3,7 +3,7 @@
 一个简单的支持单人和多个家庭成员录入收支信息并汇总分析的账本工具，可以部署在轻量级云服务器、NAS或树莓派上。
 
 * **前端**：React
-* **后端**：ASP.NET Core 6
+* **后端**：ASP.NET Core 8
 * **数据库**：SQLite 3
 
 ## 功能
@@ -29,7 +29,7 @@ docker run --name wealthome -p 5000:5000 -d ghcr.io/gacfox/wealthome:latest
 
 ## 构建和运行项目
 
-**环境要求**：构建项目需要安装.NET SDK 6、NodeJS 18。
+**环境要求**：构建项目需要安装.NET SDK 8、NodeJS 18。
 
 构建前，可以先修改`appsettings.Production.json`设置Sqlite3数据库和一些静态文件的存储位置，如果不想修改配置文件，也可以启动时直接通过环境变量设置配置字段。执行以下命令分别编译前端和服务端程序。
 
@@ -38,7 +38,7 @@ cd Frontend && npm install && npm run build:production
 ```
 
 ```bash
-dotnet publish -c Release --self-contained true --runtime linux-x64 -o bin/release/net6.0/publish
+dotnet publish -c Release --self-contained true --runtime linux-x64 -o bin/release/net8.0/publish
 ```
 
 启动服务前还需要在数据目录中执行以下命令生成SQLite3数据库文件。
