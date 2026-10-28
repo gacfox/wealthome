@@ -15,7 +15,7 @@ public class Account
     /// <summary>
     /// 账户名
     /// </summary>
-    public string AccountName { get; set; }
+    public string AccountName { get; set; } = string.Empty;
 
     /// <summary>
     /// 账户类型: 1 储蓄, 2 收入来源, 3 支出
@@ -35,7 +35,7 @@ public class Account
     /// <summary>
     /// 归属人
     /// </summary>
-    public User User { get; set; }
+    public User User { get; set; } = null!;
 
     /// <summary>
     /// 创建时间
@@ -62,7 +62,7 @@ public class AccountDto
 {
     public long Id { get; set; }
 
-    public string AccountName { get; set; }
+    public string AccountName { get; set; } = string.Empty;
 
     public int AccountType { get; set; }
 
@@ -97,7 +97,7 @@ public class CreateAccountReq
 {
     [Required(ErrorMessage = "账户名不能为空")]
     [MaxLength(50, ErrorMessage = "账户名称不能超过50个字符")]
-    public string AccountName { get; set; }
+    public string AccountName { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "账户类型不能为空")]
     [Range(1, 3, ErrorMessage = "账户类型必须是1, 2, 3")]
@@ -114,7 +114,7 @@ public class UpdateAccountReq
 
     [Required(ErrorMessage = "账户名不能为空")]
     [MaxLength(50, ErrorMessage = "账户名称不能超过50个字符")]
-    public string AccountName { get; set; }
+    public string AccountName { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "账户类型不能为空")]
     [Range(1, 3, ErrorMessage = "账户类型必须是1, 2, 3")]

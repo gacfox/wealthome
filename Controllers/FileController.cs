@@ -27,7 +27,8 @@ public class FileController : ControllerBase
     [HttpGet("[action]/{fileName}")]
     public ActionResult DownloadFile([FromRoute] string fileName)
     {
-        string avatarSaveDir = _configuration.GetValue<string>("App:AvatarSaveDir");
+        string avatarSaveDir = _configuration.GetValue<string>("App:AvatarSaveDir") ??
+                               throw new InvalidOperationException("缺少配置: App:AvatarSaveDir");
         string filePath = Path.Combine(avatarSaveDir, fileName);
         string fullFilePath = Path.GetFullPath(filePath);
         if (!fullFilePath.StartsWith(avatarSaveDir, StringComparison.OrdinalIgnoreCase))

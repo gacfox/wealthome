@@ -15,7 +15,7 @@ public class TransferType
     /// <summary>
     /// 类别名称
     /// </summary>
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// 收入支出类型: 1 收入类型, 2 支出类型, 3 资金在个人账号内流动类型
@@ -41,7 +41,7 @@ public class TransferType
 public class TransferTypeDto
 {
     public long Id { get; set; }
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
     public int InoutType { get; set; }
 
     public string InoutTypeName
@@ -63,7 +63,7 @@ public class CreateTransferTypeReq
 {
     [Required(ErrorMessage = "交易类别名不能为空")]
     [MaxLength(20, ErrorMessage = "交易类别名长度不能超过20个字符")]
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "收入支出类型不能为空")]
     [Range(1, 3, ErrorMessage = "收入支出类型值必须是1, 2, 3")]
@@ -77,7 +77,7 @@ public class UpdateTransferTypeReq
 
     [Required(ErrorMessage = "交易类别名不能为空")]
     [MaxLength(20, ErrorMessage = "交易类别名长度不能超过20个字符")]
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "收入支出类型不能为空")]
     [Range(1, 3, ErrorMessage = "收入支出类型值必须是1, 2, 3")]

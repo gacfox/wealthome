@@ -16,7 +16,7 @@ public class User
     /// <summary>
     /// 登录用户名
     /// </summary>
-    public string UserName { get; set; }
+    public string UserName { get; set; } = string.Empty;
 
     /// <summary>
     /// 展示的用户名字
@@ -36,12 +36,12 @@ public class User
     /// <summary>
     /// 角色编码: ADMIN 管理员, MEMBER 普通用户
     /// </summary>
-    public string RoleCode { get; set; }
+    public string RoleCode { get; set; } = string.Empty;
 
     /// <summary>
     /// 密码哈希值
     /// </summary>
-    public string PasswordHash { get; set; }
+    public string PasswordHash { get; set; } = string.Empty;
 
     /// <summary>
     /// 用户状态: 0 用户删除状态, 1 用户激活状态, 2 用户禁用状态
@@ -82,11 +82,11 @@ public class User
 public class UserDto
 {
     public long Id { get; set; }
-    public string UserName { get; set; }
+    public string UserName { get; set; } = string.Empty;
     public string? DisplayName { get; set; }
     public string? Email { get; set; }
     public string? AvatarUrl { get; set; }
-    public string RoleCode { get; set; }
+    public string RoleCode { get; set; } = string.Empty;
 
     public string RoleName
     {
@@ -101,7 +101,7 @@ public class UserDto
         }
     }
 
-    [JsonIgnore] public string PasswordHash { get; set; }
+    [JsonIgnore] public string PasswordHash { get; set; } = string.Empty;
     public int Status { get; set; }
 
     public string StatusName
@@ -133,9 +133,9 @@ public class InitAdminReq
 {
     [Required(ErrorMessage = "用户名不能为空")]
     [MaxLength(20, ErrorMessage = "用户名不能超过20个字符")]
-    public string UserName { get; set; }
+    public string UserName { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "密码不能为空")] public string Password { get; set; }
+    [Required(ErrorMessage = "密码不能为空")] public string Password { get; set; } = string.Empty;
 }
 
 public class CreateUserReq
@@ -143,7 +143,7 @@ public class CreateUserReq
     [Required(ErrorMessage = "用户名不能为空")]
     [MaxLength(20, ErrorMessage = "用户名不能超过20个字符")]
     [RegularExpression(@"^[a-zA-Z0-9]+$", ErrorMessage = "用户名只能包含字母和数字")]
-    public string UserName { get; set; }
+    public string UserName { get; set; } = string.Empty;
 
     [MaxLength(20, ErrorMessage = "姓名不能超过20个字符")]
     public string? DisplayName { get; set; }
@@ -154,13 +154,13 @@ public class CreateUserReq
     [MaxLength(255, ErrorMessage = "头像链接不能超过255个字符")]
     public string? AvatarUrl { get; set; }
 
-    [Required(ErrorMessage = "角色编码不能为空")] public string RoleCode { get; set; }
-    [Required(ErrorMessage = "密码不能为空")] public string Password { get; set; }
+    [Required(ErrorMessage = "角色编码不能为空")] public string RoleCode { get; set; } = string.Empty;
+    [Required(ErrorMessage = "密码不能为空")] public string Password { get; set; } = string.Empty;
 }
 
 public class UpdateUserAvatarReq
 {
-    [Required(ErrorMessage = "文件不能为空")] public IFormFile File { get; set; }
+    [Required(ErrorMessage = "文件不能为空")] public IFormFile File { get; set; } = null!;
 }
 
 public class UpdateUserStatusReq
@@ -178,14 +178,14 @@ public class UpdateUserInfoReq
     [MaxLength(50, ErrorMessage = "用户名不能超过20个字符")]
     public string? Email { get; set; }
 
-    [Required(ErrorMessage = "角色编码")] public string RoleCode { get; set; }
+    [Required(ErrorMessage = "角色编码")] public string RoleCode { get; set; } = string.Empty;
 }
 
 public class LoginReq
 {
     [Required(ErrorMessage = "用户名不能为空")]
     [MaxLength(20, ErrorMessage = "用户名不能超过20个字符")]
-    public string UserName { get; set; }
+    public string UserName { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "密码不能为空")] public string Password { get; set; }
+    [Required(ErrorMessage = "密码不能为空")] public string Password { get; set; } = string.Empty;
 }

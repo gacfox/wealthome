@@ -4,7 +4,7 @@ namespace Gacfox.Wealthome.Models.Stat;
 
 public class MonthStatDto
 {
-    public string MonthStr { get; set; }
+    public string MonthStr { get; set; } = string.Empty;
     public decimal Income { get; set; }
     public decimal Expense { get; set; }
     public string IncomeStr => Income.ToString("F2");

@@ -14,6 +14,12 @@ public class FileService
         _configuration = configuration;
     }
 
+    private string GetAvatarSaveDir()
+    {
+        return _configuration.GetValue<string>("App:AvatarSaveDir") ??
+               throw new InvalidOperationException("缺少配置: App:AvatarSaveDir");
+    }
+
     public async Task<string> SaveAvatarAsync(IFormFile file, CancellationToken cancellationToken = default)
     {
         // 检查扩展名
@@ -33,7 +39,7 @@ public class FileService
             throw new BusinessException("不支持的文件格式");
         }
 
-        string avatarSaveDir = _configuration.GetValue<string>("App:AvatarSaveDir");
+        string avatarSaveDir = GetAvatarSaveDir();
         if (!Directory.Exists(avatarSaveDir)) Directory.CreateDirectory(avatarSaveDir);
         string fileName = Guid.NewGuid() + extension;
         string filePath = Path.Combine(avatarSaveDir, fileName);
@@ -46,7 +52,7 @@ public class FileService
 
     public void DeleteAvatar(String fileName)
     {
-        string avatarSaveDir = _configuration.GetValue<string>("App:AvatarSaveDir");
+        string avatarSaveDir = GetAvatarSaveDir();
         if (!Directory.Exists(avatarSaveDir)) Directory.CreateDirectory(avatarSaveDir);
         string filePath = Path.Combine(avatarSaveDir, fileName);
         string fullFilePath = Path.GetFullPath(filePath);

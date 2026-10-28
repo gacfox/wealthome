@@ -18,7 +18,7 @@ public class Flow
     /// <summary>
     /// 操作账户
     /// </summary>
-    public Account Account { get; set; }
+    public Account Account { get; set; } = null!;
 
     /// <summary>
     /// 金额
@@ -33,7 +33,7 @@ public class Flow
     /// <summary>
     /// 关联交易记录
     /// </summary>
-    public Transfer Transfer { get; set; }
+    public Transfer Transfer { get; set; } = null!;
 
     /// <summary>
     /// 创建时间
@@ -45,7 +45,7 @@ public class FlowDto
 {
     public long Id { get; set; }
     public long AccountId { get; set; }
-    public AccountDto AccountDto { get; set; }
+    public AccountDto AccountDto { get; set; } = null!;
     public decimal Amount { get; set; }
     public string AmountStr => Amount.ToString("F2");
     public long TransferId { get; set; }

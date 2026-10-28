@@ -15,7 +15,7 @@ public class Transfer
     /// <summary>
     /// 标题
     /// </summary>
-    public string Title { get; set; }
+    public string Title { get; set; } = string.Empty;
 
     /// <summary>
     /// 交易类别ID
@@ -25,7 +25,7 @@ public class Transfer
     /// <summary>
     /// 交易类别
     /// </summary>
-    public TransferType TransferType { get; set; }
+    public TransferType TransferType { get; set; } = null!;
 
     /// <summary>
     /// 描述
@@ -40,7 +40,7 @@ public class Transfer
     /// <summary>
     /// 创建人
     /// </summary>
-    public User User { get; set; }
+    public User User { get; set; } = null!;
 
     /// <summary>
     /// 交易数据流
@@ -57,7 +57,7 @@ public class CreateTransferReq
 {
     [Required(ErrorMessage = "标题不能为空")]
     [MaxLength(50, ErrorMessage = "标题不能超过50个字符")]
-    public string Title { get; set; }
+    public string Title { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "类别不能为空")] public long TransferTypeId { get; set; }
 
@@ -111,12 +111,12 @@ public class RevertTransferReq
 public class TransferDto
 {
     public long Id { get; set; }
-    public string Title { get; set; }
+    public string Title { get; set; } = string.Empty;
     public long TransferTypeId { get; set; }
-    public TransferTypeDto TransferTypeDto { get; set; }
-    public string Description { get; set; }
+    public TransferTypeDto TransferTypeDto { get; set; } = null!;
+    public string? Description { get; set; }
     public long UserId { get; set; }
-    public UserDto UserDto { get; set; }
+    public UserDto UserDto { get; set; } = null!;
     public List<FlowDto> FlowDtos { get; set; } = new();
     public DateTime CreatedAt { get; set; }
     public string CreatedAtStr => CreatedAt.ToString("yyyy-MM-dd HH:mm:ss");
@@ -128,7 +128,7 @@ public class UpdateTransferReq
 
     [Required(ErrorMessage = "标题不能为空")]
     [MaxLength(50, ErrorMessage = "标题不能超过50个字符")]
-    public string Title { get; set; }
+    public string Title { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "类别不能为空")] public long TransferTypeId { get; set; }
 

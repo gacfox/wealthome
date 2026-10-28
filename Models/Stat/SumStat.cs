@@ -16,14 +16,14 @@ public class SumStatDto
 
 public class UserIncomeSumStatDto
 {
-    public string DisplayName { get; set; }
+    public string? DisplayName { get; set; }
     public decimal Income { get; set; }
     public string IncomeStr => Income.ToString("F2");
 }
 
 public class UserExpenseSumStatDto
 {
-    public string DisplayName { get; set; }
+    public string? DisplayName { get; set; }
     public decimal Expense { get; set; }
     public string ExpenseStr => Expense.ToString("F2");
 }

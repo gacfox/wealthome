@@ -34,7 +34,8 @@ public class LoginService
         if (user.Status == User.UserStatusSuspended) return false;
         // 密码校验不通过
         return user.PasswordHash == HashUtil.GetPasswordHash(loginReq.Password,
-            _configuration.GetValue<string>("App:PasswordSha256Salt"));
+            _configuration.GetValue<string>("App:PasswordSha256Salt") ??
+                throw new InvalidOperationException("缺少配置: App:PasswordSha256Salt"));
     }
 
     public async Task<bool> HasAdminUserInitializedAsync(CancellationToken cancellationToken = default)
@@ -63,7 +64,8 @@ public class LoginService
                 UserName = initAdminReq.UserName,
                 RoleCode = User.RoleCodeAdmin,
                 PasswordHash = HashUtil.GetPasswordHash(initAdminReq.Password,
-                    _configuration.GetValue<string>("App:PasswordSha256Salt")),
+                    _configuration.GetValue<string>("App:PasswordSha256Salt") ??
+                        throw new InvalidOperationException("缺少配置: App:PasswordSha256Salt")),
                 Status = User.UserStatusActive,
                 CreatedAt = DateTime.Now
             };

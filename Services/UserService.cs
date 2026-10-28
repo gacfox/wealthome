@@ -76,7 +76,8 @@ public class UserService
             if (existUser != null) throw new BusinessException("相同用户名已存在");
 
             string passwordHash = HashUtil.GetPasswordHash(createUserReq.Password,
-                _configuration.GetValue<string>("App:PasswordSha256Salt"));
+                _configuration.GetValue<string>("App:PasswordSha256Salt") ??
+                    throw new InvalidOperationException("缺少配置: App:PasswordSha256Salt"));
             User user = new User
             {
                 UserName = createUserReq.UserName,
