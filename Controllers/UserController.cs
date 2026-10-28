@@ -21,24 +21,28 @@ public class UserController : ControllerBase
 
     [Authorize(Roles = "ADMIN,MEMBER")]
     [HttpPost("[action]")]
-    public ActionResult<ApiResult<List<UserDto?>>> QueryUserList([FromBody] QueryUserReq queryUserReq)
+    public async Task<ActionResult<ApiResult<List<UserDto?>>>> QueryUserList([FromBody] QueryUserReq queryUserReq,
+        CancellationToken cancellationToken)
     {
-        return ApiResult<List<UserDto?>>.Success(_userService.GetUserList(queryUserReq.QueryDeleted));
+        return ApiResult<List<UserDto?>>.Success(
+            await _userService.GetUserListAsync(queryUserReq.QueryDeleted, cancellationToken));
     }
 
     [Authorize(Roles = "ADMIN")]
     [HttpPost("[action]")]
-    public ActionResult<ApiResult<object>> CreateUser(CreateUserReq createUserReq)
+    public async Task<ActionResult<ApiResult<object>>> CreateUser(CreateUserReq createUserReq,
+        CancellationToken cancellationToken)
     {
-        _userService.CreateUser(createUserReq);
+        await _userService.CreateUserAsync(createUserReq, cancellationToken);
         return ApiResult<object>.Success();
     }
 
     [Authorize(Roles = "ADMIN,MEMBER")]
     [HttpPost("[action]")]
-    public ActionResult<ApiResult<object>> UpdateUserInfo([FromBody] UpdateUserInfoReq updateUserInfoReq)
+    public async Task<ActionResult<ApiResult<object>>> UpdateUserInfo([FromBody] UpdateUserInfoReq updateUserInfoReq,
+        CancellationToken cancellationToken)
     {
-        UserDto? existUser = _userService.GetUserById(updateUserInfoReq.Id);
+        UserDto? existUser = await _userService.GetUserByIdAsync(updateUserInfoReq.Id, cancellationToken);
         if (existUser == null) return ApiResult<object>.Failure("400", "用户不存在");
         if (User.IsInRole(Models.User.RoleCodeMember))
         {
@@ -46,17 +50,17 @@ public class UserController : ControllerBase
             if (User.Identity?.Name != existUser.UserName) return ApiResult<object>.Failure("403", "无权限");
         }
 
-        _userService.UpdateUser(updateUserInfoReq);
+        await _userService.UpdateUserAsync(updateUserInfoReq, cancellationToken);
 
         return ApiResult<object>.Success();
     }
 
     [Authorize(Roles = "ADMIN,MEMBER")]
     [HttpPost("[action]")]
-    public ActionResult<ApiResult<object>> UpdateUserAvatar([FromQuery] long id,
-        [FromForm] UpdateUserAvatarReq userAvatarReq)
+    public async Task<ActionResult<ApiResult<object>>> UpdateUserAvatar([FromQuery] long id,
+        [FromForm] UpdateUserAvatarReq userAvatarReq, CancellationToken cancellationToken)
     {
-        UserDto? existUser = _userService.GetUserById(id);
+        UserDto? existUser = await _userService.GetUserByIdAsync(id, cancellationToken);
         if (existUser == null) return ApiResult<object>.Failure("400", "用户不存在");
         if (User.IsInRole(Models.User.RoleCodeMember))
         {
@@ -65,7 +69,7 @@ public class UserController : ControllerBase
         }
 
         string prevAvatarUrl = existUser.AvatarUrl ?? string.Empty;
-        string fileName = _fileService.SaveAvatar(userAvatarReq.File);
+        string fileName = await _fileService.SaveAvatarAsync(userAvatarReq.File, cancellationToken);
         if (!string.IsNullOrEmpty(prevAvatarUrl))
         {
             try
@@ -79,31 +83,34 @@ public class UserController : ControllerBase
             }
         }
 
-        _userService.UpdateUserAvatar(id, $"/api/File/DownloadFile/{fileName}");
+        await _userService.UpdateUserAvatarAsync(id, $"/api/File/DownloadFile/{fileName}", cancellationToken);
         return ApiResult<object>.Success();
     }
 
     [Authorize(Roles = "ADMIN")]
     [HttpPost("[action]")]
-    public ActionResult<ApiResult<object>> EnableUser([FromBody] UpdateUserStatusReq updateUserStatusReq)
+    public async Task<ActionResult<ApiResult<object>>> EnableUser([FromBody] UpdateUserStatusReq updateUserStatusReq,
+        CancellationToken cancellationToken)
     {
-        _userService.EnableUser(updateUserStatusReq.Id);
+        await _userService.EnableUserAsync(updateUserStatusReq.Id, cancellationToken);
         return ApiResult<object>.Success();
     }
 
     [Authorize(Roles = "ADMIN")]
     [HttpPost("[action]")]
-    public ActionResult<ApiResult<object>> DeleteUser([FromBody] UpdateUserStatusReq updateUserStatusReq)
+    public async Task<ActionResult<ApiResult<object>>> DeleteUser([FromBody] UpdateUserStatusReq updateUserStatusReq,
+        CancellationToken cancellationToken)
     {
-        _userService.DeleteUser(updateUserStatusReq.Id);
+        await _userService.DeleteUserAsync(updateUserStatusReq.Id, cancellationToken);
         return ApiResult<object>.Success();
     }
 
     [Authorize(Roles = "ADMIN")]
     [HttpPost("[action]")]
-    public ActionResult<ApiResult<object>> DisableUser([FromBody] UpdateUserStatusReq updateUserStatusReq)
+    public async Task<ActionResult<ApiResult<object>>> DisableUser([FromBody] UpdateUserStatusReq updateUserStatusReq,
+        CancellationToken cancellationToken)
     {
-        _userService.DisableUser(updateUserStatusReq.Id);
+        await _userService.DisableUserAsync(updateUserStatusReq.Id, cancellationToken);
         return ApiResult<object>.Success();
     }
 }

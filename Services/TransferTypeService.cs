@@ -1,5 +1,6 @@
 ﻿using Gacfox.Wealthome.Exceptions;
 using Gacfox.Wealthome.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Gacfox.Wealthome.Services;
@@ -15,9 +16,10 @@ public class TransferTypeService
         _logger = logger;
     }
 
-    public List<TransferTypeDto> GetTransferTypeList()
+    public async Task<List<TransferTypeDto>> GetTransferTypeListAsync(
+        CancellationToken cancellationToken = default)
     {
-        List<TransferType> transferTypes = _dbContext.TransferTypes.ToList();
+        List<TransferType> transferTypes = await _dbContext.TransferTypes.ToListAsync(cancellationToken);
         List<TransferTypeDto> transferTypeDtos = new List<TransferTypeDto>();
         foreach (TransferType transferType in transferTypes)
         {
@@ -32,9 +34,11 @@ public class TransferTypeService
         return transferTypeDtos;
     }
 
-    public TransferTypeDto? GetTransferTypeById(long id)
+    public async Task<TransferTypeDto?> GetTransferTypeByIdAsync(long id,
+        CancellationToken cancellationToken = default)
     {
-        TransferType? transferType = _dbContext.TransferTypes.FirstOrDefault(o => o.Id == id);
+        TransferType? transferType =
+            await _dbContext.TransferTypes.FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
         return transferType != null
             ? new TransferTypeDto
             {
@@ -45,9 +49,11 @@ public class TransferTypeService
             : null;
     }
 
-    public void CreateTransferType(CreateTransferTypeReq createTransferTypeReq)
+    public async Task CreateTransferTypeAsync(CreateTransferTypeReq createTransferTypeReq,
+        CancellationToken cancellationToken = default)
     {
-        using IDbContextTransaction transaction = _dbContext.Database.BeginTransaction();
+        await using IDbContextTransaction transaction =
+            await _dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
             TransferType transferType = new TransferType
@@ -56,24 +62,27 @@ public class TransferTypeService
                 InoutType = createTransferTypeReq.InoutType
             };
             _dbContext.TransferTypes.Add(transferType);
-            _dbContext.SaveChanges();
-            transaction.Commit();
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
             _logger.LogInformation("新增交易类别 [{name}]", transferType.Name);
         }
         catch (Exception)
         {
-            transaction.Rollback();
+            await transaction.RollbackAsync(CancellationToken.None);
             throw;
         }
     }
 
-    public void UpdateTransferType(UpdateTransferTypeReq updateTransferTypeReq)
+    public async Task UpdateTransferTypeAsync(UpdateTransferTypeReq updateTransferTypeReq,
+        CancellationToken cancellationToken = default)
     {
-        using IDbContextTransaction transaction = _dbContext.Database.BeginTransaction();
+        await using IDbContextTransaction transaction =
+            await _dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
             TransferType? transferType =
-                _dbContext.TransferTypes.FirstOrDefault(o => o.Id == updateTransferTypeReq.Id);
+                await _dbContext.TransferTypes.FirstOrDefaultAsync(o => o.Id == updateTransferTypeReq.Id,
+                    cancellationToken);
             if (transferType == null)
             {
                 throw new BusinessException("交易类别不存在");
@@ -82,38 +91,40 @@ public class TransferTypeService
             transferType.Name = updateTransferTypeReq.Name;
             transferType.InoutType = updateTransferTypeReq.InoutType;
             _dbContext.TransferTypes.Update(transferType);
-            _dbContext.SaveChanges();
-            transaction.Commit();
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
             _logger.LogInformation("更新交易类别 [{name}]", transferType.Name);
         }
         catch (Exception)
         {
-            transaction.Rollback();
+            await transaction.RollbackAsync(CancellationToken.None);
             throw;
         }
     }
 
-    public void DeleteTransferType(long id)
+    public async Task DeleteTransferTypeAsync(long id, CancellationToken cancellationToken = default)
     {
-        using IDbContextTransaction transaction = _dbContext.Database.BeginTransaction();
+        await using IDbContextTransaction transaction =
+            await _dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
-            TransferType? transferType = _dbContext.TransferTypes.FirstOrDefault(o => o.Id == id);
+            TransferType? transferType =
+                await _dbContext.TransferTypes.FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
             if (transferType == null) throw new BusinessException("交易类别不存在");
 
-            if (_dbContext.Transfers.Any(o => o.TransferTypeId == id))
+            if (await _dbContext.Transfers.AnyAsync(o => o.TransferTypeId == id, cancellationToken))
             {
                 throw new BusinessException("该交易类别存在关联交易数据, 无法删除");
             }
 
             _dbContext.TransferTypes.Remove(transferType);
-            _dbContext.SaveChanges();
-            transaction.Commit();
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
             _logger.LogInformation("删除交易类别 [{name}]", transferType.Name);
         }
         catch (Exception)
         {
-            transaction.Rollback();
+            await transaction.RollbackAsync(CancellationToken.None);
             throw;
         }
     }

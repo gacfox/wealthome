@@ -14,7 +14,7 @@ public class FileService
         _configuration = configuration;
     }
 
-    public string SaveAvatar(IFormFile file)
+    public async Task<string> SaveAvatarAsync(IFormFile file, CancellationToken cancellationToken = default)
     {
         // 检查扩展名
         string extension = Path.GetExtension(file.FileName).ToLower();
@@ -37,9 +37,9 @@ public class FileService
         if (!Directory.Exists(avatarSaveDir)) Directory.CreateDirectory(avatarSaveDir);
         string fileName = Guid.NewGuid() + extension;
         string filePath = Path.Combine(avatarSaveDir, fileName);
-        using FileStream fileStream = new FileStream(filePath, FileMode.Create);
-        file.CopyTo(fileStream);
-        fileStream.Close();
+        await using FileStream fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write,
+            FileShare.None, 4096, true);
+        await file.CopyToAsync(fileStream, cancellationToken);
 
         return fileName;
     }

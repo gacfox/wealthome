@@ -19,46 +19,51 @@ public class AccountController : ControllerBase
     }
 
     [HttpGet("[action]")]
-    public ActionResult<ApiResult<List<AccountDto?>>> GetAccountList()
+    public async Task<ActionResult<ApiResult<List<AccountDto?>>>> GetAccountList(
+        CancellationToken cancellationToken)
     {
-        List<AccountDto?> accountDtos = _accountService.GetAccountList();
+        List<AccountDto?> accountDtos = await _accountService.GetAccountListAsync(cancellationToken);
         return ApiResult<List<AccountDto?>>.Success(accountDtos);
     }
 
     [HttpGet("[action]")]
-    public ActionResult<ApiResult<AccountDto?>> GetAccountById([FromQuery] long id)
+    public async Task<ActionResult<ApiResult<AccountDto?>>> GetAccountById([FromQuery] long id,
+        CancellationToken cancellationToken)
     {
-        AccountDto? accountDto = _accountService.GetAccountById(id);
+        AccountDto? accountDto = await _accountService.GetAccountByIdAsync(id, cancellationToken);
         return ApiResult<AccountDto?>.Success(accountDto);
     }
 
     [HttpPost("[action]")]
-    public ActionResult<ApiResult<object>> CreateAccount([FromBody] CreateAccountReq createAccountReq)
+    public async Task<ActionResult<ApiResult<object>>> CreateAccount([FromBody] CreateAccountReq createAccountReq,
+        CancellationToken cancellationToken)
     {
         string currentLoginUsername = User.Identity!.Name!;
-        _accountService.CreateAccount(createAccountReq, currentLoginUsername);
+        await _accountService.CreateAccountAsync(createAccountReq, currentLoginUsername, cancellationToken);
         return ApiResult<object>.Success();
     }
 
     [HttpPost("[action]")]
-    public ActionResult<ApiResult<object>> UpdateAccount([FromBody] UpdateAccountReq updateAccountReq)
+    public async Task<ActionResult<ApiResult<object>>> UpdateAccount([FromBody] UpdateAccountReq updateAccountReq,
+        CancellationToken cancellationToken)
     {
-        AccountDto? accountDto = _accountService.GetAccountById(updateAccountReq.Id);
+        AccountDto? accountDto = await _accountService.GetAccountByIdAsync(updateAccountReq.Id, cancellationToken);
         if (accountDto == null) return ApiResult<object>.Failure("400", "账户不存在");
         if (User.IsInRole(Models.User.RoleCodeMember) && User.Identity?.Name != accountDto.UserDto!.UserName)
             return ApiResult<object>.Failure("403", "无权限");
-        _accountService.UpdateAccount(updateAccountReq);
+        await _accountService.UpdateAccountAsync(updateAccountReq, cancellationToken);
         return ApiResult<object>.Success();
     }
 
     [HttpPost("[action]")]
-    public ActionResult<ApiResult<object>> DeleteAccount([FromBody] DeleteAccountReq deleteAccountReq)
+    public async Task<ActionResult<ApiResult<object>>> DeleteAccount([FromBody] DeleteAccountReq deleteAccountReq,
+        CancellationToken cancellationToken)
     {
-        AccountDto? accountDto = _accountService.GetAccountById(deleteAccountReq.Id);
+        AccountDto? accountDto = await _accountService.GetAccountByIdAsync(deleteAccountReq.Id, cancellationToken);
         if (accountDto == null) return ApiResult<object>.Failure("400", "账户不存在");
         if (User.IsInRole(Models.User.RoleCodeMember) && User.Identity?.Name != accountDto.UserDto!.UserName)
             return ApiResult<object>.Failure("403", "无权限");
-        _accountService.DeleteAccount(deleteAccountReq.Id);
+        await _accountService.DeleteAccountAsync(deleteAccountReq.Id, cancellationToken);
         return ApiResult<object>.Success();
     }
 }

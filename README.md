@@ -24,14 +24,14 @@
 使用Docker部署可以参考如下命令。
 
 ```bash
-docker run --name wealthome -p 5000:5000 -d ghcr.io/gacfox/wealthome:latest
+docker run --name wealthome -p 5000:5000 -v wealthome-data:/data -d ghcr.io/gacfox/wealthome:latest
 ```
 
 ## 构建和运行项目
 
 **环境要求**：构建项目需要安装.NET SDK 8、NodeJS 18。
 
-构建前，可以先修改`appsettings.Production.json`设置Sqlite3数据库和一些静态文件的存储位置，如果不想修改配置文件，也可以启动时直接通过环境变量设置配置字段。执行以下命令分别编译前端和服务端程序。
+数据库和头像默认分别保存在应用内容目录的`Data/wealthome.db`和`Data/Avatar`，相对路径不受进程启动目录影响。需要自定义存储位置时，无需修改配置文件，可以通过`ConnectionStrings__DefaultConnection`和`App__AvatarSaveDir`环境变量覆盖；开发环境也可以使用.NET User Secrets。执行以下命令分别编译前端和服务端程序。
 
 ```bash
 cd Frontend && npm install && npm run build:production
@@ -41,11 +41,7 @@ cd Frontend && npm install && npm run build:production
 dotnet publish -c Release --self-contained true --runtime linux-x64 -o bin/release/net8.0/publish
 ```
 
-启动服务前还需要在数据目录中执行以下命令生成SQLite3数据库文件。
-
-```bash
-sqlite3 wealthome.db < doc/schema.sql
-```
+首次启动时，服务端会通过EF Core自动创建SQLite3数据库和数据表，无需手动执行建表脚本。如果需要从头初始化一个空账本，可以停止服务后删除`Data`目录再重新启动；该操作会永久删除现有账本数据。
 
 构建并发布完成后并创建数据库后，我们可以在服务器上执行以下命令以生产环境模式启动服务。
 

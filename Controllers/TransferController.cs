@@ -21,60 +21,69 @@ public class TransferController : ControllerBase
     }
 
     [HttpPost("[action]")]
-    public ActionResult<ApiResult<Pagination<TransferDto?>>> GetTransferListByPage(
-        [FromBody] QueryTransferReq queryTransferReq)
+    public async Task<ActionResult<ApiResult<Pagination<TransferDto?>>>> GetTransferListByPage(
+        [FromBody] QueryTransferReq queryTransferReq, CancellationToken cancellationToken)
     {
-        return ApiResult<Pagination<TransferDto?>>.Success(_transferService.GetTransferList(queryTransferReq));
+        return ApiResult<Pagination<TransferDto?>>.Success(
+            await _transferService.GetTransferListAsync(queryTransferReq, cancellationToken));
     }
 
     [HttpGet("[action]")]
-    public ActionResult<ApiResult<TransferDto?>> GetTransferById([FromQuery] long id)
+    public async Task<ActionResult<ApiResult<TransferDto?>>> GetTransferById([FromQuery] long id,
+        CancellationToken cancellationToken)
     {
-        return ApiResult<TransferDto?>.Success(_transferService.GetTransferById(id));
+        return ApiResult<TransferDto?>.Success(
+            await _transferService.GetTransferByIdAsync(id, cancellationToken));
     }
 
     [HttpPost("[action]")]
-    public ActionResult<ApiResult<object>> CreateTransfer([FromBody] CreateTransferReq createTransferReq)
+    public async Task<ActionResult<ApiResult<object>>> CreateTransfer([FromBody] CreateTransferReq createTransferReq,
+        CancellationToken cancellationToken)
     {
         if (User.IsInRole(Models.User.RoleCodeMember))
         {
             // 普通用户源账户必须是自己
-            AccountDto? fromAccountDto = _accountService.GetAccountById(createTransferReq.FromAccountId);
+            AccountDto? fromAccountDto =
+                await _accountService.GetAccountByIdAsync(createTransferReq.FromAccountId, cancellationToken);
             if (fromAccountDto == null) return ApiResult<object>.Failure("400", "转账来源账户不存在");
             if (User.Identity?.Name != fromAccountDto.UserDto!.UserName) return ApiResult<object>.Failure("403", "无权限");
         }
 
-        _transferService.CreateTransfer(createTransferReq, User.Identity!.Name!);
+        await _transferService.CreateTransferAsync(createTransferReq, User.Identity!.Name!, cancellationToken);
         return ApiResult<object>.Success();
     }
 
     [HttpPost("[action]")]
-    public ActionResult<ApiResult<object>> RevertTransfer([FromBody] RevertTransferReq revertTransferReq)
+    public async Task<ActionResult<ApiResult<object>>> RevertTransfer([FromBody] RevertTransferReq revertTransferReq,
+        CancellationToken cancellationToken)
     {
         if (User.IsInRole(Models.User.RoleCodeMember))
         {
             // 普通用户只能回退自己的转账记录
-            TransferDto? transferDto = _transferService.GetTransferById(revertTransferReq.Id);
+            TransferDto? transferDto =
+                await _transferService.GetTransferByIdAsync(revertTransferReq.Id, cancellationToken);
             if (transferDto == null) return ApiResult<object>.Failure("400", "交易不存在");
             if (User.Identity?.Name != transferDto.UserDto.UserName) return ApiResult<object>.Failure("403", "无权限");
         }
 
-        _transferService.RevertTransfer(revertTransferReq);
+        await _transferService.RevertTransferAsync(revertTransferReq, cancellationToken);
         return ApiResult<object>.Success();
     }
 
     [HttpPost("[action]")]
-    public ActionResult<ApiResult<object>> UpdateTransfer([FromBody] UpdateTransferReq updateTransferReq)
+    public async Task<ActionResult<ApiResult<object>>> UpdateTransfer([FromBody] UpdateTransferReq updateTransferReq,
+        CancellationToken cancellationToken)
     {
         if (User.IsInRole(Models.User.RoleCodeMember))
         {
             // 普通用户只能更新自己的转账记录
-            TransferDto? transferDto = _transferService.GetTransferById(updateTransferReq.Id);
+            TransferDto? transferDto =
+                await _transferService.GetTransferByIdAsync(updateTransferReq.Id, cancellationToken);
             if (transferDto == null) return ApiResult<object>.Failure("400", "交易不存在");
             if (User.Identity?.Name != transferDto.UserDto.UserName) return ApiResult<object>.Failure("403", "无权限");
         }
 
-        _transferService.UpdateTransfer(updateTransferReq);
+        await _transferService.UpdateTransferAsync(updateTransferReq, cancellationToken);
         return ApiResult<object>.Success();
     }
 }

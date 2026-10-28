@@ -6,9 +6,33 @@ using Gacfox.Wealthome.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+string ResolveAppPath(string path)
+{
+    return Path.GetFullPath(Path.IsPathRooted(path) ? path : Path.Combine(builder.Environment.ContentRootPath, path));
+}
+
+// 相对数据路径统一基于应用内容目录，避免受进程启动目录影响
+SqliteConnectionStringBuilder connectionStringBuilder = new SqliteConnectionStringBuilder(
+    builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=Data/wealthome.db");
+if (!string.Equals(connectionStringBuilder.DataSource, ":memory:", StringComparison.OrdinalIgnoreCase))
+{
+    if (!Path.IsPathRooted(connectionStringBuilder.DataSource))
+    {
+        connectionStringBuilder.DataSource = ResolveAppPath(connectionStringBuilder.DataSource);
+    }
+
+    string? databaseDirectory = Path.GetDirectoryName(connectionStringBuilder.DataSource);
+    if (!string.IsNullOrEmpty(databaseDirectory)) Directory.CreateDirectory(databaseDirectory);
+}
+
+string avatarSaveDir = ResolveAppPath(builder.Configuration["App:AvatarSaveDir"] ?? "Data/Avatar");
+Directory.CreateDirectory(avatarSaveDir);
+builder.Configuration["App:AvatarSaveDir"] = avatarSaveDir;
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -17,7 +41,7 @@ builder.Services.AddSwaggerGen();
 // EFCore DbContext服务
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.UseSqlite(connectionStringBuilder.ConnectionString);
 });
 
 // 注入DbConnection供Dapper使用
@@ -69,6 +93,13 @@ builder.Services.AddScoped<FileService>();
 builder.Services.AddScoped<StatService>();
 
 var app = builder.Build();
+
+// 首次启动或数据目录被删除后，自动创建 SQLite 数据库和数据表
+await using (var scope = app.Services.CreateAsyncScope())
+{
+    AppDbContext dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await dbContext.Database.EnsureCreatedAsync();
+}
 
 if (app.Environment.IsDevelopment())
 {

@@ -19,44 +19,47 @@ public class StatController : ControllerBase
     }
 
     [HttpPost("[action]")]
-    public ActionResult<ApiResult<SumStatDto>> QuerySumStat([FromBody] QuerySumStatReq querySumStatReq)
+    public async Task<ActionResult<ApiResult<SumStatDto>>> QuerySumStat([FromBody] QuerySumStatReq querySumStatReq,
+        CancellationToken cancellationToken)
     {
-        SumStatDto sumStatDto = _statService.QuerySumStat(querySumStatReq, User.Identity!.Name!);
+        SumStatDto sumStatDto =
+            await _statService.QuerySumStatAsync(querySumStatReq, User.Identity!.Name!, cancellationToken);
         return ApiResult<SumStatDto>.Success(sumStatDto);
     }
 
     [HttpPost("[action]")]
-    public ActionResult<ApiResult<IEnumerable<UserIncomeSumStatDto>>> QueryUserIncomeSumStat(
-        [FromBody] QuerySumStatReq querySumStatReq)
+    public async Task<ActionResult<ApiResult<IEnumerable<UserIncomeSumStatDto>>>> QueryUserIncomeSumStat(
+        [FromBody] QuerySumStatReq querySumStatReq, CancellationToken cancellationToken)
     {
-        IEnumerable<UserIncomeSumStatDto> userIncomeSumStatDtos = _statService.QueryUserIncomeSumStat(querySumStatReq);
+        IEnumerable<UserIncomeSumStatDto> userIncomeSumStatDtos =
+            await _statService.QueryUserIncomeSumStatAsync(querySumStatReq, cancellationToken);
         return ApiResult<IEnumerable<UserIncomeSumStatDto>>.Success(userIncomeSumStatDtos);
     }
 
     [HttpPost("[action]")]
-    public ActionResult<ApiResult<IEnumerable<UserExpenseSumStatDto>>> QueryUserExpenseSumStat(
-        [FromBody] QuerySumStatReq querySumStatReq)
+    public async Task<ActionResult<ApiResult<IEnumerable<UserExpenseSumStatDto>>>> QueryUserExpenseSumStat(
+        [FromBody] QuerySumStatReq querySumStatReq, CancellationToken cancellationToken)
     {
         IEnumerable<UserExpenseSumStatDto> userExpenseSumStatDtos =
-            _statService.QueryUserExpenseSumStat(querySumStatReq);
+            await _statService.QueryUserExpenseSumStatAsync(querySumStatReq, cancellationToken);
         return ApiResult<IEnumerable<UserExpenseSumStatDto>>.Success(userExpenseSumStatDtos);
     }
 
     [HttpPost("[action]")]
-    public ActionResult<ApiResult<IEnumerable<MonthStatDto>>> QueryUserMonthStat(
-        [FromBody] QueryMonthStatReq queryMonthStatReq)
+    public async Task<ActionResult<ApiResult<IEnumerable<MonthStatDto>>>> QueryUserMonthStat(
+        [FromBody] QueryMonthStatReq queryMonthStatReq, CancellationToken cancellationToken)
     {
         IEnumerable<MonthStatDto> userMonthStatDtos =
-            _statService.QueryUserMonthStat(queryMonthStatReq, User.Identity!.Name!);
+            await _statService.QueryUserMonthStatAsync(queryMonthStatReq, User.Identity!.Name!, cancellationToken);
         return ApiResult<IEnumerable<MonthStatDto>>.Success(userMonthStatDtos);
     }
 
     [HttpPost("[action]")]
-    public ActionResult<ApiResult<IEnumerable<MonthStatDto>>> QueryMonthStat(
-        [FromBody] QueryMonthStatReq queryMonthStatReq)
+    public async Task<ActionResult<ApiResult<IEnumerable<MonthStatDto>>>> QueryMonthStat(
+        [FromBody] QueryMonthStatReq queryMonthStatReq, CancellationToken cancellationToken)
     {
         IEnumerable<MonthStatDto> userMonthStatDtos =
-            _statService.QueryMonthStat(queryMonthStatReq);
+            await _statService.QueryMonthStatAsync(queryMonthStatReq, cancellationToken);
         return ApiResult<IEnumerable<MonthStatDto>>.Success(userMonthStatDtos);
     }
 }

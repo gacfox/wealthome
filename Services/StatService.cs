@@ -17,9 +17,10 @@ public class StatService
         _userService = userService;
     }
 
-    public SumStatDto QuerySumStat(QuerySumStatReq querySumStatReq, string currentLoginUserName)
+    public async Task<SumStatDto> QuerySumStatAsync(QuerySumStatReq querySumStatReq, string currentLoginUserName,
+        CancellationToken cancellationToken = default)
     {
-        UserDto? userDto = _userService.GetUserByUserName(currentLoginUserName);
+        UserDto? userDto = await _userService.GetUserByUserNameAsync(currentLoginUserName, cancellationToken);
         if (userDto == null) throw new BusinessException("当前登录用户不存在");
         long currentUserId = userDto.Id;
 
@@ -41,13 +42,14 @@ public class StatService
                INNER JOIN t_flow tf ON tt.id = tf.transfer_id
                INNER JOIN t_account ta ON tf.account_id = ta.id";
 
-        return _dbConnection.QueryFirst<SumStatDto>(sql, new
+        return await _dbConnection.QueryFirstAsync<SumStatDto>(new CommandDefinition(sql, new
         {
             CurrentUserId = currentUserId, querySumStatReq.Year
-        });
+        }, cancellationToken: cancellationToken));
     }
 
-    public IEnumerable<UserIncomeSumStatDto> QueryUserIncomeSumStat(QuerySumStatReq querySumStatReq)
+    public async Task<IEnumerable<UserIncomeSumStatDto>> QueryUserIncomeSumStatAsync(
+        QuerySumStatReq querySumStatReq, CancellationToken cancellationToken = default)
     {
         string sql = querySumStatReq.Mode == "total"
             ? @"
@@ -66,13 +68,14 @@ public class StatService
                INNER JOIN t_account ta ON tf.account_id = ta.id
                INNER JOIN t_user tu ON tt.user_id = tu.id
         GROUP BY tu.id";
-        return _dbConnection.Query<UserIncomeSumStatDto>(sql, new
+        return await _dbConnection.QueryAsync<UserIncomeSumStatDto>(new CommandDefinition(sql, new
         {
             querySumStatReq.Year
-        });
+        }, cancellationToken: cancellationToken));
     }
 
-    public IEnumerable<UserExpenseSumStatDto> QueryUserExpenseSumStat(QuerySumStatReq querySumStatReq)
+    public async Task<IEnumerable<UserExpenseSumStatDto>> QueryUserExpenseSumStatAsync(
+        QuerySumStatReq querySumStatReq, CancellationToken cancellationToken = default)
     {
         string sql = querySumStatReq.Mode == "total"
             ? @"
@@ -91,10 +94,10 @@ public class StatService
                INNER JOIN t_account ta ON tf.account_id = ta.id
                INNER JOIN t_user tu ON tt.user_id = tu.id
         GROUP BY tu.id";
-        return _dbConnection.Query<UserExpenseSumStatDto>(sql, new
+        return await _dbConnection.QueryAsync<UserExpenseSumStatDto>(new CommandDefinition(sql, new
         {
             querySumStatReq.Year
-        });
+        }, cancellationToken: cancellationToken));
     }
 
     private (string, string) ExtractMonthQueryParam(QueryMonthStatReq queryMonthStatReq)
@@ -132,10 +135,10 @@ public class StatService
         return (startDate, endDate);
     }
 
-    public IEnumerable<MonthStatDto> QueryUserMonthStat(QueryMonthStatReq queryMonthStatReq,
-        string currentLoginUserName)
+    public async Task<IEnumerable<MonthStatDto>> QueryUserMonthStatAsync(QueryMonthStatReq queryMonthStatReq,
+        string currentLoginUserName, CancellationToken cancellationToken = default)
     {
-        UserDto? userDto = _userService.GetUserByUserName(currentLoginUserName);
+        UserDto? userDto = await _userService.GetUserByUserNameAsync(currentLoginUserName, cancellationToken);
         if (userDto == null) throw new BusinessException("当前登录用户不存在");
         long currentUserId = userDto.Id;
 
@@ -151,15 +154,16 @@ public class StatService
         WHERE tt.created_at between @StartDate AND @EndDate
         GROUP BY MonthStr";
 
-        return _dbConnection.Query<MonthStatDto>(sql, new
+        return await _dbConnection.QueryAsync<MonthStatDto>(new CommandDefinition(sql, new
         {
             StartDate = startDate,
             EndDate = endDate,
             CurrentUserId = currentUserId
-        });
+        }, cancellationToken: cancellationToken));
     }
 
-    public IEnumerable<MonthStatDto> QueryMonthStat(QueryMonthStatReq queryMonthStatReq)
+    public async Task<IEnumerable<MonthStatDto>> QueryMonthStatAsync(QueryMonthStatReq queryMonthStatReq,
+        CancellationToken cancellationToken = default)
     {
         (string startDate, string endDate) = ExtractMonthQueryParam(queryMonthStatReq);
 
@@ -173,10 +177,10 @@ public class StatService
         WHERE tt.created_at between @StartDate AND @EndDate
         GROUP BY MonthStr";
 
-        return _dbConnection.Query<MonthStatDto>(sql, new
+        return await _dbConnection.QueryAsync<MonthStatDto>(new CommandDefinition(sql, new
         {
             StartDate = startDate,
             EndDate = endDate
-        });
+        }, cancellationToken: cancellationToken));
     }
 }

@@ -2,6 +2,7 @@
 using Gacfox.Wealthome.Exceptions;
 using Gacfox.Wealthome.Models;
 using Gacfox.Wealthome.Utils;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Gacfox.Wealthome.Services;
@@ -22,35 +23,39 @@ public class UserService
         _logger = logger;
     }
 
-    public bool UserExist(string userName)
+    public async Task<bool> UserExistAsync(string userName, CancellationToken cancellationToken = default)
     {
-        return _dbContext.Users.Any(o => o.UserName == userName && o.Status != User.UserStatusDeleted);
+        return await _dbContext.Users.AnyAsync(
+            o => o.UserName == userName && o.Status != User.UserStatusDeleted, cancellationToken);
     }
 
-    public bool UserExistIncludingDeleted(string userName)
+    public async Task<bool> UserExistIncludingDeletedAsync(string userName,
+        CancellationToken cancellationToken = default)
     {
-        return _dbContext.Users.Any(o => o.UserName == userName);
+        return await _dbContext.Users.AnyAsync(o => o.UserName == userName, cancellationToken);
     }
 
-    public UserDto? GetUserById(long id)
+    public async Task<UserDto?> GetUserByIdAsync(long id, CancellationToken cancellationToken = default)
     {
-        User? user = _dbContext.Users.FirstOrDefault(o => o.Id == id);
+        User? user = await _dbContext.Users.FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
         return user != null ? _mapper.Map<UserDto>(user) : null;
     }
 
-    public UserDto? GetUserByUserName(string userName)
+    public async Task<UserDto?> GetUserByUserNameAsync(string userName,
+        CancellationToken cancellationToken = default)
     {
-        User? user = _dbContext.Users.FirstOrDefault(o => o.UserName == userName);
+        User? user = await _dbContext.Users.FirstOrDefaultAsync(o => o.UserName == userName, cancellationToken);
         return user != null ? _mapper.Map<UserDto>(user) : null;
     }
 
-    public List<UserDto?> GetUserList(bool queryDeleted)
+    public async Task<List<UserDto?>> GetUserListAsync(bool queryDeleted,
+        CancellationToken cancellationToken = default)
     {
         List<int> queryStatus = queryDeleted
             ? new List<int> { User.UserStatusDeleted }
             : new List<int> { User.UserStatusActive, User.UserStatusSuspended };
-        List<User> users = _dbContext.Users.Where(o => queryStatus.Contains(o.Status))
-            .OrderByDescending(o => o.CreatedAt).ToList();
+        List<User> users = await _dbContext.Users.Where(o => queryStatus.Contains(o.Status))
+            .OrderByDescending(o => o.CreatedAt).ToListAsync(cancellationToken);
         List<UserDto?> userDtos = new List<UserDto?>();
         foreach (User user in users)
         {
@@ -60,12 +65,14 @@ public class UserService
         return userDtos;
     }
 
-    public void CreateUser(CreateUserReq createUserReq)
+    public async Task CreateUserAsync(CreateUserReq createUserReq, CancellationToken cancellationToken = default)
     {
-        using IDbContextTransaction transaction = _dbContext.Database.BeginTransaction();
+        await using IDbContextTransaction transaction =
+            await _dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
-            User? existUser = _dbContext.Users.FirstOrDefault(o => o.UserName == createUserReq.UserName);
+            User? existUser = await _dbContext.Users.FirstOrDefaultAsync(o => o.UserName == createUserReq.UserName,
+                cancellationToken);
             if (existUser != null) throw new BusinessException("相同用户名已存在");
 
             string passwordHash = HashUtil.GetPasswordHash(createUserReq.Password,
@@ -82,115 +89,123 @@ public class UserService
                 CreatedAt = DateTime.Now
             };
             _dbContext.Users.Add(user);
-            _dbContext.SaveChanges();
-            transaction.Commit();
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
             _logger.LogInformation("新增用户 [{userName}]", user.UserName);
         }
         catch (Exception)
         {
-            transaction.Rollback();
+            await transaction.RollbackAsync(CancellationToken.None);
             throw;
         }
     }
 
-    public void UpdateUser(UpdateUserInfoReq updateUserInfoReq)
+    public async Task UpdateUserAsync(UpdateUserInfoReq updateUserInfoReq,
+        CancellationToken cancellationToken = default)
     {
-        using IDbContextTransaction transaction = _dbContext.Database.BeginTransaction();
+        await using IDbContextTransaction transaction =
+            await _dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
-            User? user = _dbContext.Users.FirstOrDefault(o => o.Id == updateUserInfoReq.Id);
+            User? user = await _dbContext.Users.FirstOrDefaultAsync(o => o.Id == updateUserInfoReq.Id,
+                cancellationToken);
             if (user == null) throw new BusinessException("用户不存在");
             user.DisplayName = updateUserInfoReq.DisplayName;
             user.Email = updateUserInfoReq.Email;
             user.RoleCode = updateUserInfoReq.RoleCode;
             _dbContext.Users.Update(user);
-            _dbContext.SaveChanges();
-            transaction.Commit();
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
             _logger.LogInformation("用户 [{userName}] 更新信息", user.UserName);
         }
         catch (Exception)
         {
-            transaction.Rollback();
+            await transaction.RollbackAsync(CancellationToken.None);
             throw;
         }
     }
 
-    public void UpdateUserAvatar(long id, string avatarUrl)
+    public async Task UpdateUserAvatarAsync(long id, string avatarUrl,
+        CancellationToken cancellationToken = default)
     {
-        using IDbContextTransaction transaction = _dbContext.Database.BeginTransaction();
+        await using IDbContextTransaction transaction =
+            await _dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
-            User? user = _dbContext.Users.FirstOrDefault(o => o.Id == id);
+            User? user = await _dbContext.Users.FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
             if (user == null) throw new BusinessException("用户不存在");
             user.AvatarUrl = avatarUrl;
             _dbContext.Users.Update(user);
-            _dbContext.SaveChanges();
-            transaction.Commit();
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
             _logger.LogInformation("用户 [{userName}] 更新头像", user.UserName);
         }
         catch (Exception)
         {
-            transaction.Rollback();
+            await transaction.RollbackAsync(CancellationToken.None);
             throw;
         }
     }
 
-    public void EnableUser(long id)
+    public async Task EnableUserAsync(long id, CancellationToken cancellationToken = default)
     {
-        using IDbContextTransaction transaction = _dbContext.Database.BeginTransaction();
+        await using IDbContextTransaction transaction =
+            await _dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
-            User? user = _dbContext.Users.FirstOrDefault(o => o.Id == id);
+            User? user = await _dbContext.Users.FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
             if (user == null) throw new BusinessException("用户不存在");
             user.Status = User.UserStatusActive;
             _dbContext.Users.Update(user);
-            _dbContext.SaveChanges();
-            transaction.Commit();
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
             _logger.LogInformation("用户 [{userName}] 启用", user.UserName);
         }
         catch (Exception)
         {
-            transaction.Rollback();
+            await transaction.RollbackAsync(CancellationToken.None);
             throw;
         }
     }
 
-    public void DisableUser(long id)
+    public async Task DisableUserAsync(long id, CancellationToken cancellationToken = default)
     {
-        using IDbContextTransaction transaction = _dbContext.Database.BeginTransaction();
+        await using IDbContextTransaction transaction =
+            await _dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
-            User? user = _dbContext.Users.FirstOrDefault(o => o.Id == id);
+            User? user = await _dbContext.Users.FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
             if (user == null) throw new BusinessException("用户不存在");
             user.Status = User.UserStatusSuspended;
             _dbContext.Users.Update(user);
-            _dbContext.SaveChanges();
-            transaction.Commit();
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
             _logger.LogInformation("用户 [{userName}] 禁用", user.UserName);
         }
         catch (Exception)
         {
-            transaction.Rollback();
+            await transaction.RollbackAsync(CancellationToken.None);
             throw;
         }
     }
 
-    public void DeleteUser(long id)
+    public async Task DeleteUserAsync(long id, CancellationToken cancellationToken = default)
     {
-        using IDbContextTransaction transaction = _dbContext.Database.BeginTransaction();
+        await using IDbContextTransaction transaction =
+            await _dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
-            User? user = _dbContext.Users.FirstOrDefault(o => o.Id == id);
+            User? user = await _dbContext.Users.FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
             if (user == null) throw new BusinessException("用户不存在");
             user.Status = User.UserStatusDeleted;
             _dbContext.Users.Update(user);
-            _dbContext.SaveChanges();
-            transaction.Commit();
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
             _logger.LogInformation("用户 [{userName}] 软删除", user.UserName);
         }
         catch (Exception)
         {
-            transaction.Rollback();
+            await transaction.RollbackAsync(CancellationToken.None);
             throw;
         }
     }

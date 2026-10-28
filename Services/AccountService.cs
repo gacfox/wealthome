@@ -19,10 +19,11 @@ public class AccountService
         _logger = logger;
     }
 
-    public List<AccountDto?> GetAccountList()
+    public async Task<List<AccountDto?>> GetAccountListAsync(CancellationToken cancellationToken = default)
     {
         List<AccountDto?> accountDtos = new List<AccountDto?>();
-        List<Account> accounts = _dbContext.Accounts.Include(o => o.User).OrderByDescending(o => o.CreatedAt).ToList();
+        List<Account> accounts = await _dbContext.Accounts.Include(o => o.User)
+            .OrderByDescending(o => o.CreatedAt).ToListAsync(cancellationToken);
         foreach (Account account in accounts)
         {
             AccountDto? accountDto = _mapper.Map<AccountDto>(account);
@@ -36,9 +37,10 @@ public class AccountService
         return accountDtos;
     }
 
-    public AccountDto? GetAccountById(long id)
+    public async Task<AccountDto?> GetAccountByIdAsync(long id, CancellationToken cancellationToken = default)
     {
-        Account? account = _dbContext.Accounts.Include(o => o.User).FirstOrDefault(o => o.Id == id);
+        Account? account = await _dbContext.Accounts.Include(o => o.User)
+            .FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
         AccountDto? accountDto = _mapper.Map<AccountDto>(account);
         if (account == null || accountDto == null) return null;
         User u = account.User;
@@ -47,12 +49,15 @@ public class AccountService
         return accountDto;
     }
 
-    public void CreateAccount(CreateAccountReq createAccountReq, string currentLoginUserName)
+    public async Task CreateAccountAsync(CreateAccountReq createAccountReq, string currentLoginUserName,
+        CancellationToken cancellationToken = default)
     {
-        using IDbContextTransaction transaction = _dbContext.Database.BeginTransaction();
+        await using IDbContextTransaction transaction =
+            await _dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
-            User? user = _dbContext.Users.FirstOrDefault(o => o.UserName == currentLoginUserName);
+            User? user = await _dbContext.Users.FirstOrDefaultAsync(o => o.UserName == currentLoginUserName,
+                cancellationToken);
             if (user == null) throw new BusinessException("当前登录用户不存在");
 
             Account account = new Account
@@ -65,53 +70,58 @@ public class AccountService
                 CreatedAt = DateTime.Now,
             };
             _dbContext.Accounts.Add(account);
-            _dbContext.SaveChanges();
-            transaction.Commit();
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
             _logger.LogInformation("新增账户 [{accountName}]", account.AccountName);
         }
         catch (Exception)
         {
-            transaction.Rollback();
+            await transaction.RollbackAsync(CancellationToken.None);
             throw;
         }
     }
 
-    public void UpdateAccount(UpdateAccountReq updateAccountReq)
+    public async Task UpdateAccountAsync(UpdateAccountReq updateAccountReq,
+        CancellationToken cancellationToken = default)
     {
-        using IDbContextTransaction transaction = _dbContext.Database.BeginTransaction();
+        await using IDbContextTransaction transaction =
+            await _dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
-            Account? account = _dbContext.Accounts.FirstOrDefault(o => o.Id == updateAccountReq.Id);
+            Account? account = await _dbContext.Accounts.FirstOrDefaultAsync(o => o.Id == updateAccountReq.Id,
+                cancellationToken);
             if (account == null) throw new BusinessException("账户不存在");
             account.AccountName = updateAccountReq.AccountName;
             account.AccountType = updateAccountReq.AccountType;
             _dbContext.Accounts.Update(account);
-            _dbContext.SaveChanges();
-            transaction.Commit();
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
             _logger.LogInformation("更新账户 [{accountName}]", account.AccountName);
         }
         catch (Exception)
         {
-            transaction.Rollback();
+            await transaction.RollbackAsync(CancellationToken.None);
             throw;
         }
     }
 
-    public void DeleteAccount(long id)
+    public async Task DeleteAccountAsync(long id, CancellationToken cancellationToken = default)
     {
-        using IDbContextTransaction transaction = _dbContext.Database.BeginTransaction();
+        await using IDbContextTransaction transaction =
+            await _dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
-            Account? account = _dbContext.Accounts.FirstOrDefault(o => o.Id == id);
+            Account? account =
+                await _dbContext.Accounts.FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
             if (account == null) throw new BusinessException("账户不存在");
             _dbContext.Accounts.Remove(account);
-            _dbContext.SaveChanges();
-            transaction.Commit();
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
             _logger.LogInformation("删除账户 [{accountName}]", account.AccountName);
         }
         catch (Exception)
         {
-            transaction.Rollback();
+            await transaction.RollbackAsync(CancellationToken.None);
             throw;
         }
     }

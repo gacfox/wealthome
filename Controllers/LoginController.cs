@@ -23,25 +23,28 @@ public class LoginController : ControllerBase
     }
 
     [HttpGet("[action]")]
-    public ActionResult<ApiResult<bool>> HasAdminUserInitialized()
+    public async Task<ActionResult<ApiResult<bool>>> HasAdminUserInitialized(CancellationToken cancellationToken)
     {
-        bool result = _loginService.HasAdminUserInitialized();
+        bool result = await _loginService.HasAdminUserInitializedAsync(cancellationToken);
         return ApiResult<bool>.Success(result);
     }
 
     [HttpPost("[action]")]
-    public ActionResult<ApiResult<object>> InitAdminUser([FromBody] InitAdminReq initAdminReq)
+    public async Task<ActionResult<ApiResult<object>>> InitAdminUser([FromBody] InitAdminReq initAdminReq,
+        CancellationToken cancellationToken)
     {
-        _loginService.InitAdminUser(initAdminReq);
+        await _loginService.InitAdminUserAsync(initAdminReq, cancellationToken);
         return ApiResult<object>.Success();
     }
 
     [HttpPost("[action]")]
-    public ActionResult<ApiResult<object>> Login([FromBody] LoginReq loginReq)
+    public async Task<ActionResult<ApiResult<object>>> Login([FromBody] LoginReq loginReq,
+        CancellationToken cancellationToken)
     {
-        if (!_loginService.LoginCheck(loginReq)) return ApiResult<object>.Failure("401", "用户名密码错误或账号已冻结");
+        if (!await _loginService.LoginCheckAsync(loginReq, cancellationToken))
+            return ApiResult<object>.Failure("401", "用户名密码错误或账号已冻结");
 
-        UserDto? userDto = _userService.GetUserByUserName(loginReq.UserName);
+        UserDto? userDto = await _userService.GetUserByUserNameAsync(loginReq.UserName, cancellationToken);
         ClaimsIdentity claimsIdentity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
         claimsIdentity.AddClaims(new[]
         {
@@ -49,23 +52,23 @@ public class LoginController : ControllerBase
             new Claim(ClaimTypes.Role, userDto!.RoleCode)
         });
         ClaimsPrincipal claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
-        HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal);
+        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal);
         return ApiResult<object>.Success();
     }
 
     [Authorize]
     [HttpGet("[action]")]
-    public ActionResult<ApiResult<UserDto?>> GetLoginInfo()
+    public async Task<ActionResult<ApiResult<UserDto?>>> GetLoginInfo(CancellationToken cancellationToken)
     {
-        UserDto? userDto = _userService.GetUserByUserName(User.Identity!.Name!);
+        UserDto? userDto = await _userService.GetUserByUserNameAsync(User.Identity!.Name!, cancellationToken);
         return ApiResult<UserDto?>.Success(userDto);
     }
 
     [Authorize]
     [HttpPost("[action]")]
-    public ActionResult<ApiResult<object>> Logout()
+    public async Task<ActionResult<ApiResult<object>>> Logout()
     {
-        HttpContext.SignOutAsync();
+        await HttpContext.SignOutAsync();
         return ApiResult<object>.Success();
     }
 }

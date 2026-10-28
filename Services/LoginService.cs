@@ -1,6 +1,7 @@
 ﻿using Gacfox.Wealthome.Exceptions;
 using Gacfox.Wealthome.Models;
 using Gacfox.Wealthome.Utils;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Gacfox.Wealthome.Services;
@@ -24,9 +25,9 @@ public class LoginService
         _logger = logger;
     }
 
-    public bool LoginCheck(LoginReq loginReq)
+    public async Task<bool> LoginCheckAsync(LoginReq loginReq, CancellationToken cancellationToken = default)
     {
-        UserDto? user = _userService.GetUserByUserName(loginReq.UserName);
+        UserDto? user = await _userService.GetUserByUserNameAsync(loginReq.UserName, cancellationToken);
         // 账号不存在
         if (user == null) return false;
         // 账号被冻结
@@ -36,22 +37,23 @@ public class LoginService
             _configuration.GetValue<string>("App:PasswordSha256Salt"));
     }
 
-    public bool HasAdminUserInitialized()
+    public async Task<bool> HasAdminUserInitializedAsync(CancellationToken cancellationToken = default)
     {
-        return _dbContext.Users.Any();
+        return await _dbContext.Users.AnyAsync(cancellationToken);
     }
 
-    public void InitAdminUser(InitAdminReq initAdminReq)
+    public async Task InitAdminUserAsync(InitAdminReq initAdminReq, CancellationToken cancellationToken = default)
     {
-        using IDbContextTransaction transaction = _dbContext.Database.BeginTransaction();
+        await using IDbContextTransaction transaction =
+            await _dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
-            if (HasAdminUserInitialized())
+            if (await HasAdminUserInitializedAsync(cancellationToken))
             {
                 throw new BusinessException("用户表已初始化, 不能重复初始化");
             }
 
-            if (_userService.UserExist(initAdminReq.UserName))
+            if (await _userService.UserExistAsync(initAdminReq.UserName, cancellationToken))
             {
                 throw new BusinessException("相同用户名已存在");
             }
@@ -66,13 +68,13 @@ public class LoginService
                 CreatedAt = DateTime.Now
             };
             _dbContext.Users.Add(user);
-            _dbContext.SaveChanges();
-            transaction.Commit();
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
             _logger.LogInformation("管理员用户 [{userName}] 初始化", initAdminReq.UserName);
         }
         catch (Exception)
         {
-            transaction.Rollback();
+            await transaction.RollbackAsync(CancellationToken.None);
             throw;
         }
     }

@@ -19,37 +19,44 @@ public class TransferTypeController : ControllerBase
     }
 
     [HttpGet("[action]")]
-    public ActionResult<ApiResult<List<TransferTypeDto>>> GetTransferTypeList()
+    public async Task<ActionResult<ApiResult<List<TransferTypeDto>>>> GetTransferTypeList(
+        CancellationToken cancellationToken)
     {
-        List<TransferTypeDto> transferTypeDtos = _transferTypeService.GetTransferTypeList();
+        List<TransferTypeDto> transferTypeDtos =
+            await _transferTypeService.GetTransferTypeListAsync(cancellationToken);
         return ApiResult<List<TransferTypeDto>>.Success(transferTypeDtos);
     }
 
     [HttpGet("[action]")]
-    public ActionResult<ApiResult<TransferTypeDto?>> GetTransferTypeById([FromQuery] long id)
+    public async Task<ActionResult<ApiResult<TransferTypeDto?>>> GetTransferTypeById([FromQuery] long id,
+        CancellationToken cancellationToken)
     {
-        TransferTypeDto? transferTypeDto = _transferTypeService.GetTransferTypeById(id);
+        TransferTypeDto? transferTypeDto =
+            await _transferTypeService.GetTransferTypeByIdAsync(id, cancellationToken);
         return ApiResult<TransferTypeDto?>.Success(transferTypeDto);
     }
 
     [HttpPost("[action]")]
-    public ActionResult<ApiResult<object>> CreateTransferType([FromBody] CreateTransferTypeReq createTransferTypeReq)
+    public async Task<ActionResult<ApiResult<object>>> CreateTransferType(
+        [FromBody] CreateTransferTypeReq createTransferTypeReq, CancellationToken cancellationToken)
     {
-        _transferTypeService.CreateTransferType(createTransferTypeReq);
+        await _transferTypeService.CreateTransferTypeAsync(createTransferTypeReq, cancellationToken);
         return ApiResult<object>.Success();
     }
 
     [HttpPost("[action]")]
-    public ActionResult<ApiResult<object>> UpdateTransferType([FromBody] UpdateTransferTypeReq updateTransferTypeReq)
+    public async Task<ActionResult<ApiResult<object>>> UpdateTransferType(
+        [FromBody] UpdateTransferTypeReq updateTransferTypeReq, CancellationToken cancellationToken)
     {
-        _transferTypeService.UpdateTransferType(updateTransferTypeReq);
+        await _transferTypeService.UpdateTransferTypeAsync(updateTransferTypeReq, cancellationToken);
         return ApiResult<object>.Success();
     }
 
     [HttpPost("[action]")]
-    public ActionResult<ApiResult<object>> DeleteTransferType([FromBody] DeleteTransferTypeReq deleteTransferTypeReq)
+    public async Task<ActionResult<ApiResult<object>>> DeleteTransferType(
+        [FromBody] DeleteTransferTypeReq deleteTransferTypeReq, CancellationToken cancellationToken)
     {
-        _transferTypeService.DeleteTransferType(deleteTransferTypeReq.Id);
+        await _transferTypeService.DeleteTransferTypeAsync(deleteTransferTypeReq.Id, cancellationToken);
         return ApiResult<object>.Success();
     }
 }

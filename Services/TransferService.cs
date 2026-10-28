@@ -44,7 +44,8 @@ public class TransferService
         return transferDto;
     }
 
-    public Pagination<TransferDto?> GetTransferList(QueryTransferReq queryTransferReq)
+    public async Task<Pagination<TransferDto?>> GetTransferListAsync(QueryTransferReq queryTransferReq,
+        CancellationToken cancellationToken = default)
     {
         IQueryable<Transfer> queryable = _dbContext.Transfers.AsQueryable();
         queryable = queryable.Include(o => o.TransferType).Include(o => o.User);
@@ -104,10 +105,10 @@ public class TransferService
             queryable = queryable.Where(t => t.CreatedAt <= toDate);
         }
 
-        int total = queryable.Count();
-        List<Transfer> transfers = queryable.OrderByDescending(o => o.CreatedAt)
+        int total = await queryable.CountAsync(cancellationToken);
+        List<Transfer> transfers = await queryable.OrderByDescending(o => o.CreatedAt)
             .Skip((queryTransferReq.PageNum - 1) * queryTransferReq.PageSize)
-            .Take(queryTransferReq.PageSize).ToList();
+            .Take(queryTransferReq.PageSize).ToListAsync(cancellationToken);
 
         List<TransferDto?> transferDtos = new List<TransferDto?>();
         foreach (Transfer transfer in transfers)
@@ -125,36 +126,39 @@ public class TransferService
         };
     }
 
-    public TransferDto? GetTransferById(long id)
+    public async Task<TransferDto?> GetTransferByIdAsync(long id, CancellationToken cancellationToken = default)
     {
         IQueryable<Transfer> queryable = _dbContext.Transfers.AsQueryable();
         queryable = queryable.Include(o => o.TransferType).Include(o => o.User);
         queryable = queryable.Include(o => o.Flows)
             .ThenInclude(o => o.Account)
             .ThenInclude(o => o.User);
-        Transfer? transfer = queryable.FirstOrDefault(o => o.Id == id);
+        Transfer? transfer = await queryable.FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
         return transfer == null ? null : BuildTransferDto(transfer);
     }
 
-    public void CreateTransfer(CreateTransferReq createTransferReq, string currentLoginUserName)
+    public async Task CreateTransferAsync(CreateTransferReq createTransferReq, string currentLoginUserName,
+        CancellationToken cancellationToken = default)
     {
-        using IDbContextTransaction transaction = _dbContext.Database.BeginTransaction();
+        await using IDbContextTransaction transaction =
+            await _dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
-            User? transferUser = _dbContext.Users.FirstOrDefault(o =>
-                o.UserName == currentLoginUserName && o.Status != User.UserStatusDeleted);
+            User? transferUser = await _dbContext.Users.FirstOrDefaultAsync(o =>
+                o.UserName == currentLoginUserName && o.Status != User.UserStatusDeleted, cancellationToken);
             if (transferUser == null) throw new BusinessException("当前登录用户不存在");
 
             TransferType? transferType =
-                _dbContext.TransferTypes.FirstOrDefault(o => o.Id == createTransferReq.TransferTypeId);
+                await _dbContext.TransferTypes.FirstOrDefaultAsync(o => o.Id == createTransferReq.TransferTypeId,
+                    cancellationToken);
             if (transferType == null) throw new BusinessException("交易类别不存在");
 
-            Account? fromAccount = _dbContext.Accounts.Include(o => o.User)
-                .FirstOrDefault(o => o.Id == createTransferReq.FromAccountId);
+            Account? fromAccount = await _dbContext.Accounts.Include(o => o.User)
+                .FirstOrDefaultAsync(o => o.Id == createTransferReq.FromAccountId, cancellationToken);
             if (fromAccount == null) throw new BusinessException("转出账户不存在");
 
-            Account? toAccount = _dbContext.Accounts.Include(o => o.User)
-                .FirstOrDefault(o => o.Id == createTransferReq.ToAccountId);
+            Account? toAccount = await _dbContext.Accounts.Include(o => o.User)
+                .FirstOrDefaultAsync(o => o.Id == createTransferReq.ToAccountId, cancellationToken);
             if (toAccount == null) throw new BusinessException("转入账户不存在");
 
             DateTime createdAt = DateTime.Parse(createTransferReq.CreatedAtStr);
@@ -195,25 +199,28 @@ public class TransferService
             _dbContext.Transfers.Add(transfer);
             _dbContext.Accounts.Update(fromAccount);
             _dbContext.Accounts.Update(toAccount);
-            _dbContext.SaveChanges();
-            transaction.Commit();
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
             _logger.LogInformation("新增交易 [{title}]", transfer.Title);
         }
         catch (Exception)
         {
-            transaction.Rollback();
+            await transaction.RollbackAsync(CancellationToken.None);
             throw;
         }
     }
 
-    public void RevertTransfer(RevertTransferReq revertTransferReq)
+    public async Task RevertTransferAsync(RevertTransferReq revertTransferReq,
+        CancellationToken cancellationToken = default)
     {
-        using IDbContextTransaction transaction = _dbContext.Database.BeginTransaction();
+        await using IDbContextTransaction transaction =
+            await _dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
             IQueryable<Transfer> queryable = _dbContext.Transfers.AsQueryable();
             queryable = queryable.Include(o => o.Flows).ThenInclude(o => o.Account).ThenInclude(o => o.User);
-            Transfer? transfer = queryable.FirstOrDefault(o => o.Id == revertTransferReq.Id);
+            Transfer? transfer =
+                await queryable.FirstOrDefaultAsync(o => o.Id == revertTransferReq.Id, cancellationToken);
             if (transfer == null) throw new BusinessException("交易不存在");
             List<Flow> flows = transfer.Flows;
             foreach (Flow flow in flows)
@@ -224,31 +231,34 @@ public class TransferService
             }
 
             _dbContext.Transfers.Remove(transfer);
-            _dbContext.SaveChanges();
-            transaction.Commit();
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
             _logger.LogInformation("撤销交易 [{title}]", transfer.Title);
         }
         catch (Exception)
         {
-            transaction.Rollback();
+            await transaction.RollbackAsync(CancellationToken.None);
             throw;
         }
     }
 
-    public void UpdateTransfer(UpdateTransferReq updateTransferReq)
+    public async Task UpdateTransferAsync(UpdateTransferReq updateTransferReq,
+        CancellationToken cancellationToken = default)
     {
-        using IDbContextTransaction transaction = _dbContext.Database.BeginTransaction();
+        await using IDbContextTransaction transaction =
+            await _dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
-            Transfer? transfer = _dbContext.Transfers.Include(o => o.Flows)
-                .FirstOrDefault(o => o.Id == updateTransferReq.Id);
+            Transfer? transfer = await _dbContext.Transfers.Include(o => o.Flows)
+                .FirstOrDefaultAsync(o => o.Id == updateTransferReq.Id, cancellationToken);
             if (transfer == null) throw new BusinessException("交易不存在");
             transfer.Title = updateTransferReq.Title;
             transfer.CreatedAt = DateTime.Parse(updateTransferReq.CreatedAtStr);
             transfer.Description = updateTransferReq.Description;
 
             TransferType? transferType =
-                _dbContext.TransferTypes.FirstOrDefault(o => o.Id == updateTransferReq.TransferTypeId);
+                await _dbContext.TransferTypes.FirstOrDefaultAsync(o => o.Id == updateTransferReq.TransferTypeId,
+                    cancellationToken);
             if (transferType != null)
             {
                 transfer.TransferTypeId = updateTransferReq.TransferTypeId;
@@ -263,13 +273,13 @@ public class TransferService
                 _dbContext.Flows.Update(flow);
             }
 
-            _dbContext.SaveChanges();
-            transaction.Commit();
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
             _logger.LogInformation("更新交易 [{title}]", transfer.Title);
         }
         catch (Exception)
         {
-            transaction.Rollback();
+            await transaction.RollbackAsync(CancellationToken.None);
             throw;
         }
     }
